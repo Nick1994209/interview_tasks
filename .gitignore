@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Unit test / coverage reports
+.coverage*
+.cache
+log.log
+*.log
+
+# PyCharm
+.idea
+
+# emacs temporary
+.\#*
+
+# mac os
+.DS_Store
+
+.pytest_cache/
+.mypy_cache/
+htmlcov
