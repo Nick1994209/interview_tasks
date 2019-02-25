@@ -7,9 +7,9 @@ from unittest import mock
 class MockedFetcher:
     mocked_fetch: mock.MagicMock
 
-    def add_return_values(self, headers: Dict, body: bytes) -> None:
+    def add_return_values(self, status_code: int, headers: Dict, body: bytes) -> None:
         async def coro():
-            return headers, body
+            return status_code, headers, body
         self.mocked_fetch.return_value = coro()
 
     def check_call_with(self, path: str) -> None:

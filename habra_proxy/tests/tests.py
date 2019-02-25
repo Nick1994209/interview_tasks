@@ -12,7 +12,9 @@ from tests.helpers import MockedFetcher
 ])
 async def test_called_with_path(client: test_utils.TestClient,
                                 mocked_habra_fetch: MockedFetcher, path: str):
-    mocked_habra_fetch.add_return_values({}, b'')
+    mocked_habra_fetch.add_return_values(
+        status_code=200, headers={'Content-Type': 'text/html'}, body=b'',
+    )
     response = await client.get(path)
     assert response.status == 200
     mocked_habra_fetch.check_call_with(path.replace('/', '', 1))
@@ -32,7 +34,9 @@ async def test_correct_texts(
         mocked_habra_fetch: MockedFetcher,
         habra_body: bytes,
         expected_text: str):
-    mocked_habra_fetch.add_return_values({'Content-Type': 'text/html'}, habra_body)
+    mocked_habra_fetch.add_return_values(
+        status_code=200, headers={'Content-Type': 'text/html'}, body=habra_body,
+    )
     response = await client.get('/')
     assert response.status == 200
 
@@ -40,9 +44,24 @@ async def test_correct_texts(
     assert response_text.replace('\n', '') == expected_text
 
 
+@pytest.mark.parametrize('habra_status_code', [
+    200, 201, 302, 400,
+])
+async def test_correct_response_code(
+    client: test_utils.TestClient,
+    mocked_habra_fetch: MockedFetcher,
+    habra_status_code: int,
+):
+    mocked_habra_fetch.add_return_values(
+        status_code=habra_status_code, headers={'Content-Type': 'text/html'}, body=b'',
+    )
+    response = await client.get('/')
+    assert response.status == habra_status_code
+
+
 @pytest.mark.parametrize('text,expected_text,add_symbol,searcher', [
-    ('I am vasyok', 'I am vasyok@@@\n', '@@@', re.compile(r'(\w{6})')),
-    ('I am vasyok I am the best of the best', 'I am™ vasyok I am™ the best of™ the best\n',
+    ('<div>I am vasyok</div>', '<div>\n I am vasyok@@@\n</div>', '@@@', re.compile(r'(\w{6})')),
+    ('<div>I am vasyok I am the best</div>', '<div>\n I am™ vasyok I am™ the best\n</div>',
      '™', re.compile(r'\b\w{2}\b')),
 ])
 async def test_words_add_symbols(text: str, add_symbol: str, expected_text: str, searcher):

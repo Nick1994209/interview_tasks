@@ -23,13 +23,13 @@ class Fetcher:
         }
         log.info('Create fetcher base_url=%s base_request_params=%s', base_url, self.request_params)
 
-    async def fetch(self, path: str) -> Tuple[multidict.CIMultiDictProxy, bytes]:
+    async def fetch(self, path: str) -> Tuple[int, multidict.CIMultiDictProxy, bytes]:
         url = furl(self.base_url).add(path=path).url
 
         log.info('Fetcher fetch from url=%s', url)
         async with self.semaphore:
             async with self.session.get(url, **self.request_params) as response:  # type: ignore
-                return response.headers, await response.read()
+                return response.status, response.headers, await response.read()
 
     async def close(self) -> None:
         await self.session.close()
